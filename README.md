@@ -1,6 +1,4 @@
-리액트 - 메타마스크 지갑 연동
-
-# Sample Hardhat Project
+# 리액트 - 메타마스크 지갑 연동 with hardhat
 
 This project demonstrates a basic Hardhat use case. It comes with a sample contract, a test for that contract, and a script that deploys that contract.
 
