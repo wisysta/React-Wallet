@@ -3,7 +3,6 @@ import { ethers } from "ethers";
 import { useEffect, useState } from "react";
 import styled from "styled-components";
 import GreetingArtifact from "../artifacts/contracts/Greeting.sol/Greeting.json";
-
 const StyledDeployContractButton = styled.button`
     width: 180px;
     height: 2rem;
@@ -23,13 +22,26 @@ const StyledLabel = styled.label`
     font-weight: bold;
 `;
 
+const StyledInput = styled.input`
+    padding: 0.4rem 0.6rem;
+`;
+
+const styledButton = styled.button`
+    width: 150px;
+    height: 2rem;
+    border-radius: 1rem;
+    border-color: blue;
+    cursor: pointer;
+`;
+
 export function ContractCall() {
     const { active, library } = useWeb3React();
 
     const [signer, setSigner] = useState();
     const [greeting, setGreeting] = useState();
-    const [greetingContract, setGreetingContract] = useState();
-    const [greetingContractAddr, setGreetingContractAddr] = useState();
+    const [greetingContract, setGreetingContract] = useState("");
+    const [greetingContractAddr, setGreetingContractAddr] = useState("");
+    const [greetingInput, setGreetingInput] = useState("");
 
     useEffect(() => {
         if (!library) {
@@ -39,19 +51,59 @@ export function ContractCall() {
         setSigner(library.getSigner());
     }, [library]);
 
-    // useEffect(() => {
-    //     if (!greetingContract) return;
+    useEffect(() => {
+        if (!greetingContract) return;
 
-    //     async function getGreeting(greetingContract) {
-    //         const _greeting = await greetingContract.getFunction("greet").name;
+        async function getGreeting(greetingContract) {
+            const _greeting = await greetingContract.greet();
 
-    //         if
+            if (_greeting !== greeting) {
+                setGreeting(_greeting);
+            }
+        }
 
-    //         setGreeting(_greeting);
-    //     }
+        getGreeting(greetingContract);
+    }, [greetingContract, greeting]);
 
-    //     getGreeting(greetingContract);
-    // }, []);
+    const handleGreetingChange = (event) => {
+        event.preventDefault();
+        setGreetingInput(event.target.value);
+    };
+
+    const handleGreetingSubmit = (event) => {
+        event.preventDefault();
+        if (!greetingContract) {
+            window.alert("Undefined greeting Contract");
+            return;
+        }
+        if (!greetingInput) {
+            window.alert("Greeting cannot be empty");
+            return;
+        }
+
+        async function submitGreeing(greetingContract) {
+            try {
+                const setGreetingTxn = await greetingContract.setGreeting(
+                    greetingInput
+                );
+                await setGreetingTxn.wait();
+
+                const newGreeting = await greetingContract.greet();
+                window.alert(`Success : ${newGreeting}`);
+
+                if (newGreeting !== greeting) {
+                    setGreeting(newGreeting);
+                }
+            } catch (error) {
+                window.alert(
+                    "Error: ",
+                    error && error.message ? `${error.message}` : ""
+                );
+            }
+        }
+
+        submitGreeing(greetingContract);
+    };
 
     const handleDeployContract = (event) => {
         event.preventDefault();
@@ -63,19 +115,17 @@ export function ContractCall() {
         async function deployGreetingContract() {
             const Greeting = new ethers.ContractFactory(
                 GreetingArtifact.abi,
-                GreetingArtifact.bytecode,
-                signer
-            );
+                GreetingArtifact.bytecode
+            ).connect(signer);
             try {
-                const greetingContract = await Greeting.deploy("Hello wisysta");
-                await greetingContract.waitForDeployment();
+                const greetingContract = await Greeting.deploy(
+                    "Hello~ good morning everybody"
+                );
 
-                const greet = greetingContract.getFunction("greet");
+                await greetingContract.deployed();
 
-                console.log(await greet());
-                // console.log(await greet.staticCallResult("Hello wisysta"));
-
-                const address = await greetingContract.getAddress();
+                const greeting = await greetingContract.greet();
+                const address = greetingContract.address;
 
                 setGreetingContract(greetingContract);
                 setGreeting(greeting);
@@ -115,6 +165,21 @@ export function ContractCall() {
                 <StyledLabel>
                     {greeting ? greeting : <>'Contract not yet deployed'</>}
                 </StyledLabel>
+            </StyledGreetingDiv>
+            <StyledGreetingDiv>
+                <StyledLabel>Set new Greeting</StyledLabel>
+                <input
+                    id="greetingInput"
+                    type="text"
+                    placeholder={greeting ? "" : "Contract not yed deployed"}
+                    onChange={handleGreetingChange}
+                />
+                <button
+                    disabled={!active || !greetingContract ? true : false}
+                    onClick={handleGreetingSubmit}
+                >
+                    Submit
+                </button>
             </StyledGreetingDiv>
         </>
     );

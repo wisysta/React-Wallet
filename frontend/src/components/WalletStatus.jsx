@@ -104,7 +104,9 @@ const Balance = () => {
     return (
         <>
             <span>Balance : </span>
-            <span>{balance ? `${ethers.formatEther(balance)} ETH` : ""}</span>
+            <span>
+                {balance ? `${ethers.utils.formatEther(balance)} ETH` : ""}
+            </span>
         </>
     );
 };

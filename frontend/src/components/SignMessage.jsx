@@ -24,7 +24,7 @@ export function SignMessage() {
             try {
                 const signature = await library
                     .getSigner(account)
-                    .signMessage("Hello wisysta");
+                    .signMessage("signMessage");
                 window.alert(`Success! ${signature}`);
             } catch (error) {
                 console.error(error);
