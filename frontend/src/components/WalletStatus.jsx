@@ -122,6 +122,7 @@ const NextNonce = () => {
         async function getNextNonce() {
             try {
                 const nextNonce = await library.getTransactionCount(account);
+                console.log(nextNonce);
                 if (!stale) {
                     setNextNonce(nextNonce);
                 }
@@ -136,7 +137,7 @@ const NextNonce = () => {
             stale = true;
             setNextNonce(undefined);
         };
-    });
+    }, [account, library, chainId]);
 
     return (
         <>
